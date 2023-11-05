@@ -21,9 +21,11 @@ const client = new MongoClient(uri, {
 async function run() {
    try {
       // Connect the client to the server	(optional starting in v4.7)
-       await client.connect();
+      //  await client.connect();
 
       const jobCollection = client.db('skillFusionHubDB').collection('jobs');
+      const postedJobCollection = client.db('skillFusionHubDB').collection('postedJobs');
+      const jobCartCollection = client.db('skillFusionHubDB').collection('myCart');
 
       // get all jobs
       app.get('/jobs', async(req,res) => {
@@ -38,11 +40,28 @@ async function run() {
          const result = await jobCollection.findOne(query);
          res.send(result);
       });
+      // get specific jobs for individual users
+      app.get('/postedJobs', async(req,res) =>{
+         console.log(req.query);
+         let query = {}
+         if(req.query?.email){
+            query = { email: req.query.email }
+         }
+         const result = await postedJobCollection.find().toArray();
+         res.send(result);
+      })
       // post jobs
-      app.post('/jobs', async(req, res) =>{
+      app.post('/postedJobs', async(req, res) =>{
          const newJob = req.body;
          console.log(newJob);
-         const result = await jobCollection.insertOne(newJob);
+         const result = await postedJobCollection.insertOne(newJob);
+         res.send(result);
+      });
+      // post my cart jobs
+      app.post('/myCart', async(req, res) =>{
+         const job = req.body;
+         console.log(job);
+         const result = await jobCartCollection.insertOne(job);
          res.send(result);
       });
 
