@@ -28,42 +28,81 @@ async function run() {
       const jobCartCollection = client.db('skillFusionHubDB').collection('myCart');
 
       // get all jobs
-      app.get('/jobs', async(req,res) => {
+      app.get('/jobs', async (req, res) => {
          const cursor = jobCollection.find();
          const result = await cursor.toArray();
          res.send(result);
       });
       // get specific jobs
-      app.get('/jobs/:id', async(req,res) => {
+      app.get('/jobs/:id', async (req, res) => {
          const id = req.params.id;
-         const query = { _id: new ObjectId(id)}
+         const query = { _id: new ObjectId(id) }
          const result = await jobCollection.findOne(query);
          res.send(result);
       });
-      // get specific jobs for individual users
-      app.get('/postedJobs', async(req,res) =>{
+
+
+
+
+      // get specific email-holder jobs for individual users
+      app.get('/postedJobs', async (req, res) => {
          console.log(req.query);
          let query = {}
-         if(req.query?.email){
+         if (req.query?.email) {
             query = { email: req.query.email }
          }
          const result = await postedJobCollection.find().toArray();
          res.send(result);
       })
-      // post jobs
-      app.post('/postedJobs', async(req, res) =>{
-         const newJob = req.body;
-         console.log(newJob);
-         const result = await postedJobCollection.insertOne(newJob);
-         res.send(result);
-      });
       // post my cart jobs
-      app.post('/myCart', async(req, res) =>{
+      app.post('/myCart', async (req, res) => {
          const job = req.body;
          console.log(job);
          const result = await jobCartCollection.insertOne(job);
          res.send(result);
       });
+      // post jobs
+      app.post('/postedJobs', async (req, res) => {
+         const newJob = req.body;
+         console.log(newJob);
+         const result = await postedJobCollection.insertOne(newJob);
+         res.send(result);
+      });
+      // get specific posted job
+      app.get('/postedJobs/:id', async (req, res) => {
+         const id = req.params.id;
+         const query = { _id: new ObjectId(id) }
+         const result = await postedJobCollection.findOne(query);
+         res.send(result);
+      });
+
+      // delete posted jobs
+      app.delete('/postedJobs/:id', async (req, res) => {
+         const id = req.params.id;
+         const query = { _id: new ObjectId(id) }
+         const result = await postedJobCollection.deleteOne(query);
+         res.send(result)
+      });
+      // update selected posted job
+      app.put('/postedJobs/:id', async (req, res) => {
+         const id = req.params.id;
+         const filter = { _id: new ObjectId(id) }
+         const options = { upsert: true }
+         const updatedJob = {
+            $set: {
+               // job_title, email, deadline, minimum_price, maximum_price,short_description
+               job_title: req.body.job_title,
+               category: req.body.category,
+               email: req.body.email,
+               deadline: req.body.deadline,
+               minimum_price: req.body.minimum_price,
+               maximum_price: req.body.maximum_price,
+               short_description: req.body.short_description,
+            }
+         }
+         const result = await postedJobCollection.updateOne(filter, updatedJob, options);
+         res.send(result);
+      })
 
 
       // Send a ping to confirm a successful connection
