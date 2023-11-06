@@ -40,8 +40,62 @@ async function run() {
          const result = await jobCollection.findOne(query);
          res.send(result);
       });
+      // post jobs to all jobs
+      app.post('/jobs', async (req, res) => {
+         const newJob = req.body;
+         console.log(newJob);
+         const result = await jobCollection.insertOne(newJob);
+         res.send(result);
+      });
 
 
+      // get specific email-holder my carts posted jobs for individual users
+      app.get('/myCart', async (req, res) => {
+         console.log(req.query);
+         let query = {}
+         if (req.query?.developer_email) {
+             query = { developer_email: req.query.developer_email }
+         }
+         else if (req.query?.buyer_email) {
+             query = { buyer_email: req.query.buyer_email }
+         }
+         const result = await jobCartCollection.find(query).toArray();
+         res.send(result);
+      });
+      // post my cart jobs
+      app.post('/myCart', async (req, res) => {
+         const job = req.body;
+         console.log(job);
+         const result = await jobCartCollection.insertOne(job);
+         res.send(result);
+      });
+// update 
+   app.patch('/myCart/:id', async(req,res) =>{
+      const id = req.params.id;
+      // console.log(id)
+      const filter = {_id: new ObjectId(id)}
+      const status = req.body.status;
+      const completeStatus = req.body.completeStatus;
+      console.log("sta, complete", status,completeStatus);
+      let updateDoc ={}
+      if(status){
+          updateDoc = {
+            $set:{
+               status : status
+            },
+         };
+      }
+      else if(completeStatus){
+          updateDoc = {
+            $set:{
+               completeStatus:completeStatus
+            },
+         };
+      }
+
+     const result = await jobCartCollection.updateOne(filter,updateDoc);
+     res.send(result);
+   })
 
 
       // get specific email-holder jobs for individual users
@@ -51,14 +105,14 @@ async function run() {
          if (req.query?.email) {
             query = { email: req.query.email }
          }
-         const result = await postedJobCollection.find().toArray();
+         const result = await postedJobCollection.find(query).toArray();
          res.send(result);
-      })
-      // post my cart jobs
-      app.post('/myCart', async (req, res) => {
-         const job = req.body;
-         console.log(job);
-         const result = await jobCartCollection.insertOne(job);
+      });
+      // get specific posted job for update
+      app.get('/postedJobs/:id', async (req, res) => {
+         const id = req.params.id;
+         const query = { _id: new ObjectId(id) }
+         const result = await postedJobCollection.findOne(query);
          res.send(result);
       });
       // post jobs
@@ -68,13 +122,7 @@ async function run() {
          const result = await postedJobCollection.insertOne(newJob);
          res.send(result);
       });
-      // get specific posted job
-      app.get('/postedJobs/:id', async (req, res) => {
-         const id = req.params.id;
-         const query = { _id: new ObjectId(id) }
-         const result = await postedJobCollection.findOne(query);
-         res.send(result);
-      });
+
 
       // delete posted jobs
       app.delete('/postedJobs/:id', async (req, res) => {
@@ -102,7 +150,7 @@ async function run() {
          }
          const result = await postedJobCollection.updateOne(filter, updatedJob, options);
          res.send(result);
-      })
+      });
 
 
       // Send a ping to confirm a successful connection
