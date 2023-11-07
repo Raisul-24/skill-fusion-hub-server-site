@@ -91,7 +91,7 @@ async function run() {
          res.send(result);
       });
       // get specific jobs
-      app.get('/jobs/:id', middleMan, verifyToken, async (req, res) => {
+      app.get('/jobs/:id', async (req, res) => {
          
          const id = req.params.id;
          const query = { _id: new ObjectId(id) }
@@ -117,7 +117,17 @@ async function run() {
          else if (req.query?.buyer_email) {
              query = { buyer_email: req.query.buyer_email }
          }
-         const result = await jobCartCollection.find(query).toArray();
+         const result = await jobCartCollection
+         .find(query)
+         .sort({ status: 1 }) // Sort by 'status' field in ascending order
+         .toArray();
+     
+       // Custom sorting order
+       result.sort((a, b) => {
+         const customOrder = ['Accepted', 'Pending', 'Rejected'];
+         return customOrder.indexOf(a.status) - customOrder.indexOf(b.status);
+       });
+
          res.send(result);
       });
       // post my cart jobs
