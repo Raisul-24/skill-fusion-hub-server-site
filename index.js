@@ -84,8 +84,8 @@ async function run() {
 
 
       // get all jobs
-      app.get('/jobs', middleMan, verifyToken, async (req, res) => {
-         // console.log("cookies", req.cookies)
+      app.get('/jobs', async (req, res) => {
+         console.log("cookies", req.cookies)
          const cursor = jobCollection.find();
          const result = await cursor.toArray();
          res.send(result);
@@ -99,7 +99,7 @@ async function run() {
          res.send(result);
       });
       // post jobs to all jobs
-      app.post('/jobs', async (req, res) => {
+      app.post('/jobs',middleMan, verifyToken, async (req, res) => {
          const newJob = req.body;
          console.log(newJob);
          const result = await jobCollection.insertOne(newJob);
@@ -157,7 +157,7 @@ async function run() {
 
 
       // get specific email-holder jobs for individual users
-      app.get('/postedJobs', middleMan, verifyToken, async (req, res) => {
+      app.get('/postedJobs', async (req, res) => {
          console.log(req.query.email);
          console.log('token owner',req.user);
          // if(req.user.email !== req.query.email){
@@ -178,7 +178,7 @@ async function run() {
          res.send(result);
       });
       // post jobs
-      app.post('/postedJobs', async (req, res) => {
+      app.post('/postedJobs',middleMan, verifyToken, async (req, res) => {
          const newJob = req.body;
          console.log(newJob);
          const result = await postedJobCollection.insertOne(newJob);
