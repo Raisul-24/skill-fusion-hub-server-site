@@ -1,18 +1,20 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const jwt = require('jsonwebtoken');
 
-require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3001;
 
 // middleware
 app.use(cors({
    origin: [
-      'http://localhost:5173'
+      // 'http://localhost:5173',
+      'https://car-doctor-c273a.web.app',
+      'https://car-doctor-c273a.firebaseapp.com'
    ],
    credentials: true
 }))
@@ -119,7 +121,7 @@ async function run() {
          }
          const result = await jobCartCollection
          .find(query)
-         .sort({ status: 1 }) // Sort by 'status' field in ascending order
+         .sort({ status: 1 })
          .toArray();
      
        // Custom sorting order
@@ -170,9 +172,6 @@ async function run() {
       app.get('/postedJobs', async (req, res) => {
          console.log(req.query.email);
          console.log('token owner',req.user);
-         // if(req.user.email !== req.query.email){
-         //    return res.status(403).send({message: 'forbidden access'})
-         // }
          let query = {}
          if (req.query?.email) {
             query = { email: req.query.email }
