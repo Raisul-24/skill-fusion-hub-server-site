@@ -31,25 +31,24 @@ const client = new MongoClient(uri, {
    }
 });
 
-// middleware
-const middleMan = (req, res , next) =>{
-   console.log('log: info',req.method, req.url);
-   next();
-}
+
 const verifyToken = (req, res, next) =>{
-   const token = req?.cookies?.token;
-   // console.log('token in middleware:', token);
-   // no token available
+   const { token } = req.cookies
+        
+   //if client does not send token
    if(!token){
-      return res.status(401).send({message: 'unauthorized access'})
+       return res.status(401).send({message:'You are not authorized'})
    }
-   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) =>{
-      if(err){
-         return res.status(401).send({message: 'unauthorized access'})
-      }
-      req.user = decoded;
-      next();
-   })
+
+   // verify a token symmetric
+   jwt.verify(token,secret, function (err, decoded) {
+       if(err){
+           return res.status(401).send({message:'You are not authorized'})
+       }
+   // attach decoded user so that others can get it
+     req.user= decoded
+   next()
+   });
 }
 
 
@@ -81,7 +80,7 @@ async function run() {
       app.post('/logout', async(req, res) =>{
          const user = req.body;
          console.log('loggingOut', user)
-         res.clearCookie('token', { maxAge: 0 }).send({success: true})
+         res.clearCookie('token', { maxAge: 0, sameSite: 'none', secure: true}).send({success: true})
       })
 
 
@@ -101,13 +100,12 @@ async function run() {
          res.send(result);
       });
       // post jobs to all jobs
-      app.post('/jobs',middleMan, verifyToken, async (req, res) => {
+      app.post('/jobs', async (req, res) => {
          const newJob = req.body;
          console.log(newJob);
          const result = await jobCollection.insertOne(newJob);
          res.send(result);
       });
-
 
       // get specific email-holder my carts posted jobs for individual users
       app.get('/myCart', async (req, res) => {
@@ -187,7 +185,7 @@ async function run() {
          res.send(result);
       });
       // post jobs
-      app.post('/postedJobs',middleMan, verifyToken, async (req, res) => {
+      app.post('/postedJobs', async (req, res) => {
          const newJob = req.body;
          console.log(newJob);
          const result = await postedJobCollection.insertOne(newJob);
