@@ -32,16 +32,22 @@ const client = new MongoClient(uri, {
 });
 
 
+const logger = (req, res, next) =>{
+   console.log('log: info', req.method, req.url);
+   next();
+}
+
 const verifyToken = (req, res, next) =>{
-   const { token } = req.cookies
-        
+   const token  = req?.cookies?.token
+        console.log(token)
+        console.log(process.env.ACCESS_TOKEN_SECRET)
    //if client does not send token
    if(!token){
        return res.status(401).send({message:'You are not authorized'})
    }
 
    // verify a token symmetric
-   jwt.verify(token,secret, function (err, decoded) {
+   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,  (err, decoded) => {
        if(err){
            return res.status(401).send({message:'You are not authorized'})
        }
@@ -71,9 +77,10 @@ async function run() {
 
          res.cookie('token', token, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none'
-         })
+            secure: process.env.NODE_ENV === 'production', 
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+
+        })
          .send({success: true})
       })
 
