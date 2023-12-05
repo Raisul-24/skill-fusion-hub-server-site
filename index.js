@@ -12,9 +12,9 @@ const port = process.env.PORT || 3001;
 // middleware
 app.use(cors({
    origin: [
-      // 'http://localhost:5173',
+      'https://skill-fusion-hub.netlify.app',
       'https://car-doctor-c273a.web.app',
-      'https://car-doctor-c273a.firebaseapp.com'
+      'https://car-doctor-c273a.firebaseapp.com',
    ],
    credentials: true
 }))
